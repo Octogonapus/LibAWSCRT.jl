@@ -1,0 +1,6 @@
+[deps]
+AWSCRT_jll = "01db5350-6ea1-5d9a-9a47-8a31a394cb9c"
+Clang = "40e3b903-d033-50b4-a0cc-940c62c95e31"
+
+[compat]
+Clang = "0.15"

@@ -1,2 +1,9 @@
 [deps]
+CountDownLatches = "621fb831-fdad-4fff-93ac-1af7b7ed19e3"
+ForeignCallbacks = "809b5ff2-8730-47bb-8e19-67299d747c44"
+Random = "9a3f8284-a2c9-5f02-9a11-845980a1fd5c"
 Test = "8dfed614-e22c-5e08-85e1-65c5234f0b40"
+
+[compat]
+CountDownLatches = "1"
+ForeignCallbacks = "0.1"
