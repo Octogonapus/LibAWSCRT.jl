@@ -185,8 +185,8 @@ function aws_iot_client_test_main()
     push!(refs, bootstrap)
 
     tls_ctx_opt = Ref(aws_tls_ctx_options(ntuple(_ -> UInt8(0), 200)))
-    cert_bc = aws_byte_cursor_from_c_str(ENV["CERT_STRING"])
-    pri_key_bc = aws_byte_cursor_from_c_str(ENV["PRI_KEY_STRING"])
+    cert_bc = Ref(aws_byte_cursor_from_c_str(ENV["CERT_STRING"]))
+    pri_key_bc = Ref(aws_byte_cursor_from_c_str(ENV["PRI_KEY_STRING"]))
     @test AWS_OP_SUCCESS == aws_tls_ctx_options_init_client_mtls(tls_ctx_opt, allocator, cert_bc, pri_key_bc)
     @test tls_ctx_opt[].allocator == allocator
     @test AWS_OP_SUCCESS == aws_tls_ctx_options_set_alpn_list(tls_ctx_opt, "x-amzn-mqtt-ca")
