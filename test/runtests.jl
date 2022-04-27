@@ -155,7 +155,7 @@ function aws_iot_client_test_main()
     will_payload = "The client has gone offline!"
     ca_filepath = joinpath(@__DIR__, "certs", "AmazonRootCA1.pem")
 
-    allocator = aws_default_allocator()
+    allocator = aws_mem_tracer_new(aws_default_allocator(), C_NULL, AWS_MEMTRACE_BYTES, 16)
     push!(refs, allocator)
 
     logger = Ref(aws_logger(C_NULL, C_NULL, C_NULL))
@@ -326,8 +326,12 @@ function aws_iot_client_test_main()
     aws_host_resolver_release(resolver)
     aws_event_loop_group_release(el_group)
     aws_thread_join_all_managed()
+    aws_logger_clean_up(logger)
     aws_mqtt_library_clean_up()
     empty!(refs)
+
+    @test aws_mem_tracer_count(allocator) == 0
+    aws_mem_tracer_destroy(allocator)
 end
 
 @testset "aws_iot_client_test" begin
