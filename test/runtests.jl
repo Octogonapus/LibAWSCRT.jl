@@ -1,5 +1,5 @@
-using Test, LibAWSCRT, CountDownLatches
-import ForeignCallbacks, Random
+using Test, LibAWSCRT, CountDownLatches, Random
+import ForeignCallbacks
 
 const refs = Vector{Ref}()
 const received_on_connection_complete = CountDownLatch(1)
@@ -10,6 +10,11 @@ const all_packets_received = CountDownLatch(NUM_PACKETS)
 const suback = CountDownLatch(1)
 const PAYLOAD_STR = Random.randstring(48)
 const TOPIC_STR = "test-topic"
+
+"""
+Generates a test-independently-random client ID. Reusing the same client ID in multiple tests creates many problems.
+"""
+random_client_id() = randstring(MersenneTwister(), 48)
 
 struct OnConnectionCompleteMsg
     error_code::Cint
@@ -67,13 +72,13 @@ end
 on_packet_received_fcb = ForeignCallbacks.ForeignCallback{PacketReceivedMsg}() do msg
     count_down(all_packets_received)
 
-    topic = String(Base.unsafe_wrap(Array, msg.topic_copy, msg.topic_len, own = true))
+    topic = String(Base.unsafe_wrap(Array, msg.topic_copy, msg.topic_len, own=true))
     if topic != TOPIC_STR
         @error "topic equality check failed" topic TOPIC_STR
         exit(1)
     end
 
-    payload = String(Base.unsafe_wrap(Array, msg.payload_copy, msg.payload_len, own = true))
+    payload = String(Base.unsafe_wrap(Array, msg.payload_copy, msg.payload_len, own=true))
     if payload != PAYLOAD_STR
         @error "payload equality check failed" payload PAYLOAD_STR
         exit(1)
@@ -151,7 +156,7 @@ function mqtt_on_disconnect(connection::Ptr{aws_mqtt_client_connection}, userdat
 end
 
 function aws_iot_client_test_main()
-    client_id_name = "test-client-id"
+    client_id_name = random_client_id()
     will_payload = "The client has gone offline!"
     ca_filepath = joinpath(@__DIR__, "certs", "AmazonRootCA1.pem")
 
@@ -184,7 +189,20 @@ function aws_iot_client_test_main()
     bootstrap = aws_client_bootstrap_new(allocator, bootstrap_options)
     push!(refs, bootstrap)
 
-    tls_ctx_opt = Ref(aws_tls_ctx_options(ntuple(_ -> UInt8(0), 200)))
+    tls_ctx_opt = Ref(aws_tls_ctx_options(
+        C_NULL,
+        AWS_IO_TLS_VER_SYS_DEFAULTS,
+        AWS_IO_TLS_CIPHER_PREF_SYSTEM_DEFAULT,
+        aws_byte_buf(0, C_NULL, 0, C_NULL),
+        C_NULL,
+        C_NULL,
+        aws_byte_buf(0, C_NULL, 0, C_NULL),
+        aws_byte_buf(0, C_NULL, 0, C_NULL),
+        0,
+        false,
+        C_NULL,
+        C_NULL,
+    ))
     cert_bc = Ref(aws_byte_cursor_from_c_str(ENV["CERT_STRING"]))
     pri_key_bc = Ref(aws_byte_cursor_from_c_str(ENV["PRI_KEY_STRING"]))
     @test AWS_OP_SUCCESS == aws_tls_ctx_options_init_client_mtls(tls_ctx_opt, allocator, cert_bc, pri_key_bc)
@@ -194,6 +212,10 @@ function aws_iot_client_test_main()
 
     tls_ctx = aws_tls_client_ctx_new(allocator, tls_ctx_opt)
     push!(refs, tls_ctx)
+    if tls_ctx == C_NULL
+        code = aws_last_error()
+        @error "something failed" code Base.unsafe_string(aws_error_debug_str(code))
+    end
     @test tls_ctx != C_NULL
 
     aws_tls_ctx_options_clean_up(tls_ctx_opt)

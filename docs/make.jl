@@ -12,13 +12,15 @@ makedocs(;
         prettyurls=get(ENV, "CI", "false") == "true",
         canonical="https://Octogonapus.github.io/LibAWSCRT.jl",
         assets=String[],
+        size_threshold_ignore=["index.md"]
     ),
     pages=[
         "Home" => "index.md",
     ],
+    warnonly=[:cross_references]
 )
 
 deploydocs(;
     repo="github.com/Octogonapus/LibAWSCRT.jl",
-    devbranch="main",
+    devbranch="main"
 )
