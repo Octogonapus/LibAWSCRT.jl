@@ -212,6 +212,10 @@ function aws_iot_client_test_main()
 
     tls_ctx = aws_tls_client_ctx_new(allocator, tls_ctx_opt)
     push!(refs, tls_ctx)
+    if tls_ctx == C_NULL
+        code = aws_last_error()
+        @error "something failed" code Base.unsafe_string(aws_error_debug_str(code))
+    end
     @test tls_ctx != C_NULL
 
     aws_tls_ctx_options_clean_up(tls_ctx_opt)
