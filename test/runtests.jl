@@ -11,6 +11,11 @@ const suback = CountDownLatch(1)
 const PAYLOAD_STR = Random.randstring(48)
 const TOPIC_STR = "test-topic"
 
+"""
+Generates a test-independently-random client ID. Reusing the same client ID in multiple tests creates many problems.
+"""
+random_client_id() = randstring(MersenneTwister(), 48)
+
 struct OnConnectionCompleteMsg
     error_code::Cint
     return_code::Cint
@@ -151,7 +156,7 @@ function mqtt_on_disconnect(connection::Ptr{aws_mqtt_client_connection}, userdat
 end
 
 function aws_iot_client_test_main()
-    client_id_name = "test-client-id"
+    client_id_name = random_client_id()
     will_payload = "The client has gone offline!"
     ca_filepath = joinpath(@__DIR__, "certs", "AmazonRootCA1.pem")
 
