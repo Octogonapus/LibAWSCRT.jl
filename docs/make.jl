@@ -11,14 +11,15 @@ makedocs(;
     format=Documenter.HTML(;
         prettyurls=get(ENV, "CI", "false") == "true",
         canonical="https://Octogonapus.github.io/LibAWSCRT.jl",
-        assets=String[],
+        assets=String[]
     ),
     pages=[
         "Home" => "index.md",
     ],
+    warnonly=[:cross_references]
 )
 
 deploydocs(;
     repo="github.com/Octogonapus/LibAWSCRT.jl",
-    devbranch="main",
+    devbranch="main"
 )
