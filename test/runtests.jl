@@ -1,5 +1,5 @@
-using Test, LibAWSCRT, CountDownLatches
-import ForeignCallbacks, Random
+using Test, LibAWSCRT, CountDownLatches, Random
+import ForeignCallbacks
 
 const refs = Vector{Ref}()
 const received_on_connection_complete = CountDownLatch(1)
