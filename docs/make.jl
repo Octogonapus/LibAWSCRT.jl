@@ -11,7 +11,8 @@ makedocs(;
     format=Documenter.HTML(;
         prettyurls=get(ENV, "CI", "false") == "true",
         canonical="https://Octogonapus.github.io/LibAWSCRT.jl",
-        assets=String[]
+        assets=String[],
+        size_threshold_ignore=["index.md"]
     ),
     pages=[
         "Home" => "index.md",
