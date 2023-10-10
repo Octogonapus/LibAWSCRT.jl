@@ -67,13 +67,13 @@ end
 on_packet_received_fcb = ForeignCallbacks.ForeignCallback{PacketReceivedMsg}() do msg
     count_down(all_packets_received)
 
-    topic = String(Base.unsafe_wrap(Array, msg.topic_copy, msg.topic_len, own = true))
+    topic = String(Base.unsafe_wrap(Array, msg.topic_copy, msg.topic_len, own=true))
     if topic != TOPIC_STR
         @error "topic equality check failed" topic TOPIC_STR
         exit(1)
     end
 
-    payload = String(Base.unsafe_wrap(Array, msg.payload_copy, msg.payload_len, own = true))
+    payload = String(Base.unsafe_wrap(Array, msg.payload_copy, msg.payload_len, own=true))
     if payload != PAYLOAD_STR
         @error "payload equality check failed" payload PAYLOAD_STR
         exit(1)
@@ -184,7 +184,20 @@ function aws_iot_client_test_main()
     bootstrap = aws_client_bootstrap_new(allocator, bootstrap_options)
     push!(refs, bootstrap)
 
-    tls_ctx_opt = Ref(aws_tls_ctx_options(ntuple(_ -> UInt8(0), 200)))
+    tls_ctx_opt = Ref(aws_tls_ctx_options(
+        C_NULL,
+        AWS_IO_TLS_VER_SYS_DEFAULTS,
+        AWS_IO_TLS_CIPHER_PREF_SYSTEM_DEFAULT,
+        aws_byte_buf(0, C_NULL, 0, C_NULL),
+        C_NULL,
+        C_NULL,
+        aws_byte_buf(0, C_NULL, 0, C_NULL),
+        aws_byte_buf(0, C_NULL, 0, C_NULL),
+        0,
+        false,
+        C_NULL,
+        C_NULL,
+    ))
     cert_bc = Ref(aws_byte_cursor_from_c_str(ENV["CERT_STRING"]))
     pri_key_bc = Ref(aws_byte_cursor_from_c_str(ENV["PRI_KEY_STRING"]))
     @test AWS_OP_SUCCESS == aws_tls_ctx_options_init_client_mtls(tls_ctx_opt, allocator, cert_bc, pri_key_bc)
